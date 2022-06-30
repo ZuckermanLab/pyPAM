@@ -14,7 +14,7 @@ Contents:
 4. sge scheduler script (run_sampler_sge.sh - not finished yet!)
     + need to convert from slurm to sge: https://srcc.stanford.edu/sge-slurm-conversion  
 
-Quick start:
+Quick start (see example and code comments for more details):
 1. running several affine invariant ensemble samplers together in parallel
 ```
 import parallel_affine as pa
@@ -36,4 +36,4 @@ Running on HPC:
 
 
 
-See example and code comments for more details.
+
