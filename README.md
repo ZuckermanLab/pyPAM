@@ -12,6 +12,7 @@ Contents:
 2. example (parallel_affine_example.py), 
 3. slurm scheduler script (run_sampler_slurm.sh), 
 4. sge scheduler script (run_sampler_sge.sh - not finished yet!)
+  + need to convert from slurm to sge: https://srcc.stanford.edu/sge-slurm-conversion  
 
 Quick start:
 1. running several affine invariant ensemble samplers together in parallel
