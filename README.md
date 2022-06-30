@@ -28,10 +28,11 @@ states = sampler.run_mixing_sampler(p_0, n_steps, n_cores, n_mixing_steps, n_fin
 samples = sampler.get_flat_samples()  # shape = (n_ensembles*n_final_steps*n_walkers,n_dim)
 ```
 
-See example and code comments for more details.
-
-
 Running on HPC:
-0. install a python environment and clone github project on HPC 
-1. modify scheduling scripts based on your needs/environment
-2. run example to ensure it's working as expected
+1. install a python environment and clone github project on HPC 
+2. modify scheduling scripts based on your needs/environment
+3. run example to ensure it's working as expected
+
+
+
+See example and code comments for more details.
