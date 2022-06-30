@@ -27,3 +27,5 @@ sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, lo
 states = sampler.run_mixing_sampler(p_0, n_steps, n_cores, n_mixing_steps, n_final_steps)  
 samples = sampler.get_flat_samples()  # shape = (n_ensembles*n_final_steps*n_walkers,n_dim)
 ```
+
+See example and code comments for more details.
