@@ -1,6 +1,6 @@
 # parallel_affine_invariant_ensemble_sampler
 ##### August George, 2022, under development
-A parallelizable extension of the affine invariant ensemble sampler (EMCEE python package) w/ optional 'mixing' for initialization. 
+A parallelizable extension of the affine invariant ensemble sampler (EMCEE python package) w/ optional 'mixing' for initialization. Currently supports multiple cores (not multiple HPC nodes yet)
 
 There are two main capabilities:
 1. run several affine invariant ensemble samplers together in parallel
@@ -29,3 +29,9 @@ samples = sampler.get_flat_samples()  # shape = (n_ensembles*n_final_steps*n_wal
 ```
 
 See example and code comments for more details.
+
+
+Running on HPC:
+0. install a python environment and clone github project on HPC 
+1. modify scheduling scripts based on your needs/environment
+2. run example to ensure it's working as expected
