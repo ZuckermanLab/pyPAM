@@ -14,4 +14,9 @@ Contents:
 4. sge scheduler script (run_sampler_sge.sh - not finished yet)
 
 Quick start:
-`x`
+1. running several affine invariant ensemble samplers together in parallel
+
+`import parallel_affine as pa`
+`sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args)`
+`states = sampler.run_sampler(p_0, n_steps_total, n_cores)`
+`samples = sampler.get_flat_samples()  # shape = (n_ensembles*n_steps*n_walkers,n_dim)`
