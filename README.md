@@ -3,4 +3,8 @@ A parallelizable extension of the affine invariant ensemble sampler (EMCEE pytho
 
 August George, 2022, Under development
 
-contents: main code (parallel_affine.py), example (parallel_affine_example.py), slurm scheduler script (run_sampler_slurm.sh), sge scheduler script (run_sampler_sge.sh - not finished yet)
+contents:
+1. main code (parallel_affine.py), 
+2. example (parallel_affine_example.py), 
+3. slurm scheduler script (run_sampler_slurm.sh), 
+4. sge scheduler script (run_sampler_sge.sh - not finished yet)
