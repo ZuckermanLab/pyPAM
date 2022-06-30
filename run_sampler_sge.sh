@@ -1,4 +1,4 @@
-NEED TO CONVERT FROM SLURM to SGE: https://srcc.stanford.edu/sge-slurm-conversion 
+NEED TO CONVERT FROM SBATCH on SLURM scheduler to SGE: https://srcc.stanford.edu/sge-slurm-conversion 
 
 #!/bin/bash
 #SBATCH --nodes=1
