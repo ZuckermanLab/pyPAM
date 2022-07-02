@@ -2,6 +2,11 @@
 ##### August George, 2022, under development
 A parallelizable extension of the affine invariant ensemble sampler (EMCEE python package) w/ optional 'mixing' for initialization. Currently supports multiple cores (not multiple HPC nodes yet)
 
+
+### Updates
+7/1/2022 - added 'thin' option, example usage, and example on doing 'manual' mixing affine while saving samples at every stage
+
+
 There are two main capabilities:
 1. run several affine invariant ensemble samplers together in parallel
 2. run several affine invariant ensemble samplers together in parallel w/ a 'mixing' intialization phase. Here after n steps, the last walkers are shuffled between all the enesembles and used as the intial walker positions for the next sampling iteration. This is repeated m times until a final 'production' run is started. 
