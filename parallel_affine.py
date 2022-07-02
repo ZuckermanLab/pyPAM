@@ -15,26 +15,30 @@ def wrapper(arg_list):
     log_prob_args = arg_list[3]
     p_0 = arg_list[4]
     n_steps = arg_list[5]
+    thin = arg_list[6]
+    #backend = arg_list[8]
     sampler = emcee.EnsembleSampler(n_walkers, n_dim, log_prob, args=log_prob_args)
-    state = sampler.run_mcmc(p_0,n_steps)
+    state = sampler.run_mcmc(p_0,n_steps, thin=thin)
     return (sampler, state)
 
 
 class ParallelEnsembleSampler:
-    def __init__(self, n_ensembles, n_walkers, n_dim, log_prob, log_prob_args):
+    def __init__(self, n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin):
         """initializes sampler class"""
         self.n_ensembles = n_ensembles
         self.n_walkers = n_walkers
         self.n_dim = n_dim
         self.log_prob = log_prob
         self.log_prob_args = log_prob_args
-
+        self.thin = thin
         # check that inputs are valid
         assert(type(self.n_ensembles)==int and self.n_ensembles>=1)
         assert(type(self.n_dim)==int and self.n_dim>=1)
         assert(type(self.n_walkers)==int and self.n_walkers>=2*n_dim and self.n_walkers%2==0)
         assert(isinstance(self.log_prob, types.FunctionType)==True)
         assert(type(self.log_prob_args)==list)
+        assert(type(self.thin)==int and self.thin>=1)
+        #assert(type(self.moves)==list)
 
         # create a list ('ensemble') of affine invariant ensemble samplers
         try:
@@ -46,20 +50,23 @@ class ParallelEnsembleSampler:
 
      
    
-    def run_sampler(self,p_0,n_steps,n_cores):
+    def run_sampler(self,p_0,n_steps,n_cores,thin):
         """runs parallel ensemble samplers - without mixing"""
         # note: self.n_steps gets updated during self.run_sampler() call
         self.p_0 = p_0
         self.n_steps = n_steps
         self.n_cores = n_cores
+        self.thin = thin
 
         # check that inputs are valid        
         assert(isinstance(self.p_0,(list,np.ndarray)) and np.shape(self.p_0) == (self.n_ensembles, self.n_walkers, self.n_dim))
         assert(type(self.n_steps)==int and self.n_steps>=1)
         assert(type(self.n_cores)==int and self.n_cores>=1)
+        #assert(type(self.moves)==list)
+        assert(type(self.thin)==int and self.thin>=1)
 
         # create a list of all the arguments for 'wrapper' function that makes and runs affine samplers in parallel
-        arg_list = [(self.n_walkers, self.n_dim, self.log_prob, self.log_prob_args, self.p_0[i], self.n_steps) for i in range(self.n_ensembles)]
+        arg_list = [(self.n_walkers, self.n_dim, self.log_prob, self.log_prob_args, self.p_0[i], self.n_steps, self.thin) for i in range(self.n_ensembles)]
         pool = mp.Pool(self.n_cores)  # create a pool of workers w/ n cores
         r = pool.map(wrapper, arg_list)  # use pool w/ map to run affine samplers in parallel
         pool.close()   
@@ -74,7 +81,8 @@ class ParallelEnsembleSampler:
     def get_chains(self):
         """returns the MCMC chains (samples) w/ shape = (n_ensembles, n_steps, n_walkers, n_dim)"""
         samples = [i.get_chain() for i in self.sampler_list]
-        assert(np.shape(samples)==(self.n_ensembles,self.n_steps,self.n_walkers,self.n_dim))
+        #print(np.shape(samples))
+        assert(np.shape(samples)==(self.n_ensembles,int(self.n_steps/self.thin),self.n_walkers,self.n_dim))
         return np.array(samples)
 
 
@@ -100,7 +108,7 @@ class ParallelEnsembleSampler:
         return p0_new  
 
 
-    def run_mixing_sampler(self,p_0,n_steps,n_cores,n_mixing_steps,n_final_steps):
+    def run_mixing_sampler(self,p_0,n_steps,n_cores,n_mixing_steps,n_final_steps,thin):
         """runs parallel ensemble samplers - with N mixing steps plus a final sampling run"""
         # check that inputs are valid        
         assert(isinstance(p_0,(list,np.ndarray)) and np.shape(p_0) == (self.n_ensembles, self.n_walkers, self.n_dim))
@@ -108,21 +116,24 @@ class ParallelEnsembleSampler:
         assert(type(n_cores)==int and n_cores>=1)
         assert(type(n_mixing_steps)==int and n_mixing_steps>=0)
         assert(type(n_final_steps)==int and n_final_steps>=n_steps)
+        #assert(type(moves)==list)
+        assert(type(thin)==int and thin>=1)
+
 
         p_0_tmp = p_0  # start w/ initial parameter set 
         for i in range(n_mixing_steps):
             # start parallel affine invariant ensemble samplers
-            self.run_sampler(p_0_tmp,n_steps,n_cores)
+            self.run_sampler(p_0_tmp,n_steps,n_cores,thin)
             p_0_tmp = self.mix_ensembles()  # update starting parameter set to new 'shuffled' parameter sets
         # note: self.n_steps gets updated during self.run_sampler() call, so will update to n_final_steps
-        state_list = self.run_sampler(p_0_tmp,n_final_steps,n_cores)     
+        state_list = self.run_sampler(p_0_tmp,n_final_steps,n_cores,thin)     
         return state_list
 
 
     def get_flat_samples(self):
         """return samples in a flat shape - (n_ensembles*n_steps*n_walkers, n_dim)"""
         chains = self.get_chains()
-        flat_samples = np.reshape(chains, (self.n_ensembles*self.n_steps*self.n_walkers, self.n_dim))
+        flat_samples = np.reshape(chains, (self.n_ensembles*int(self.n_steps/self.thin)*self.n_walkers, self.n_dim))
         return flat_samples
        
 

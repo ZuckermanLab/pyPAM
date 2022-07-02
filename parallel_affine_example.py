@@ -28,30 +28,34 @@ if __name__ == "__main__":
     # sampling parameters 
     n_ensembles = 4
     n_walkers = 10
-    n_steps = 100
+    n_steps = 200
     n_final_steps = 1000
     n_mixing_steps = 10
     log_prob_args = [means, cov]
     n_cores = n_ensembles
+    thin = 10
 
     # initial start points w/ shape = (n_ensembles, n_walkers, n_dim)
     p_0 = np.array([np.random.rand(n_walkers, n_dim) for i in range(n_ensembles)])
 
     # run parallel sampler (w/ mixing initialization) and time it
     t0 = time.time()
-    sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args)
-    states = sampler.run_mixing_sampler(p_0, n_steps, n_cores, n_mixing_steps, n_final_steps)  
+    sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin)
+    states = sampler.run_mixing_sampler(p_0, n_steps, n_cores, n_mixing_steps, n_final_steps,thin)  
     samples = sampler.get_flat_samples()
+    print(np.shape(samples))
     t = time.time() - t0
     n_log_prob_calls = n_ensembles*n_walkers*n_steps*n_mixing_steps + n_ensembles*n_walkers*n_final_steps
     print(f'{n_cores} core(s), w/ mixing: {t} sec wall-clock for {n_log_prob_calls} log probability calculations --> {n_log_prob_calls/t} calculations/sec')
 
+
     # run parallel sampler (w/o mixing initialization) and time it
     n_steps_total = n_steps*n_mixing_steps + n_final_steps
     t0 = time.time()
-    sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args)
-    states = sampler.run_sampler(p_0, n_steps_total, n_cores)  # same total number of log probability calculations as above example
+    sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin)
+    states = sampler.run_sampler(p_0, n_steps_total, n_cores, thin)  # same total number of log probability calculations as above example
     samples_2 = sampler.get_flat_samples()
+    print(np.shape(samples_2))
     t = time.time() - t0
     n_log_prob_calls = n_ensembles*n_walkers*n_steps*n_mixing_steps + n_ensembles*n_walkers*n_final_steps
     print(f'{n_cores} core(s), w/o mixing: {t} sec wall-clock for {n_log_prob_calls} log probability calculations --> {n_log_prob_calls/t} calculations/sec')
@@ -63,8 +67,9 @@ if __name__ == "__main__":
     t0 = time.time()
     with mp.Pool(n_cores) as pool:
         sampler_emcee = emcee.EnsembleSampler(n_walkers_emcee, n_dim, log_prob, args=log_prob_args, pool=pool)
-        sampler_emcee.run_mcmc(p_0_emcee,n_steps_emcee)
+        sampler_emcee.run_mcmc(p_0_emcee,n_steps_emcee, thin=thin)
     samples_emcee_p = sampler_emcee.get_chain(flat=True)
+    print(np.shape(samples_emcee_p))
     t = time.time() - t0
     n_log_prob_calls = n_walkers_emcee*n_steps_emcee
     print(f'{n_cores} core(s), w/o mixing: {t} sec wall-clock for {n_log_prob_calls} log probability calculations --> {n_log_prob_calls/t} calculations/sec')
@@ -78,3 +83,16 @@ if __name__ == "__main__":
         ax.hist(np.transpose(samples_emcee_p)[i], 100, color="red", histtype="step", density=True, label='parallel EMCEE')
         ax.legend()
     plt.savefig('parallel_affine_example_dist.png')
+
+
+    ### example of manually doing mixing and saving samples to .csv
+    sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin)
+    p_0_tmp = p_0
+    for i in range(n_mixing_steps):
+        states = sampler.run_sampler(p_0, n_steps, n_cores, thin) 
+        samples = sampler.get_flat_samples()
+        np.savetxt(f"samples_s{i}.csv", samples, delimiter=",")
+        p_0_tmp = sampler.mix_ensembles()
+    states = sampler.run_sampler(p_0, n_final_steps, n_cores, thin) 
+    samples = sampler.get_flat_samples()
+    np.savetxt("samples_s_final.csv", samples, delimiter=",")
