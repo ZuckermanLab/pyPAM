@@ -24,15 +24,15 @@ Quick start (see example and code comments for more details):
 1. running several affine invariant ensemble samplers together in parallel
 ```
 import parallel_affine as pa
-sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args)
-states = sampler.run_sampler(p_0, n_steps_total, n_cores)
+sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin)
+states = sampler.run_sampler(p_0, n_steps_total, n_cores, thin)
 samples = sampler.get_flat_samples()  # shape = (n_ensembles*n_steps*n_walkers,n_dim)
 ```
 2. running several affine invariant ensemble samplers together in parallel, w/ mixing initialization
 ```
 import parallel_affine as pa
-sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args)
-states = sampler.run_mixing_sampler(p_0, n_steps, n_cores, n_mixing_steps, n_final_steps)  
+sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin)
+states = sampler.run_mixing_sampler(p_0, n_steps, n_cores, n_mixing_steps, n_final_steps, thin)  
 samples = sampler.get_flat_samples()  # shape = (n_ensembles*n_final_steps*n_walkers,n_dim)
 ```
 
