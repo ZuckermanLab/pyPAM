@@ -3,7 +3,7 @@
 A parallelizable extension of the affine invariant ensemble sampler (EMCEE python package) w/ optional 'mixing' for initialization. Currently supports multiple cores (not multiple HPC nodes yet)
 
 
-### Updates
+##### Updates
 7/1/2022 - added 'thin' option, example usage, and example on doing 'manual' mixing affine while saving samples at every stage
 
 
