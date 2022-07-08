@@ -6,6 +6,7 @@ A parallelizable extension of the affine invariant ensemble sampler (EMCEE pytho
 ##### Updates
 
 7/6/2022 - added 'backends' and 'moves' option, with example usage
+
 7/1/2022 - added 'thin' option, example usage, and example on doing 'manual' mixing affine while saving samples at every stage
 
 ---
