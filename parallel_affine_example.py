@@ -111,11 +111,11 @@ if __name__ == "__main__":
     sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin, backend_fnames, moves)
     p_0_tmp = p_0
     for i in range(n_mixing_steps):
-        states = sampler.run_sampler(p_0, n_steps, n_cores, thin) 
+        states = sampler.run_sampler(p_0_tmp, n_steps, n_cores, thin) 
         samples = sampler.get_flat_samples()
         np.savetxt(f"samples_s{i}.csv", samples, delimiter=",")
         p_0_tmp = sampler.mix_ensembles()
         sampler.reset_backend()
-    states = sampler.run_sampler(p_0, n_final_steps, n_cores, thin) 
+    states = sampler.run_sampler(p_0_tmp, n_final_steps, n_cores, thin) 
     samples = sampler.get_flat_samples()
     np.savetxt("samples_s_final.csv", samples, delimiter=",")
