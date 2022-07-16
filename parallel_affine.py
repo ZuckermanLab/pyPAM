@@ -6,22 +6,8 @@ import multiprocessing as mp
 import types
 import sys
 import h5py
-
-
-def wrapper(arg_list):
-    """wrapper function to make and run ensemble sampler object in parallel"""
-    n_walkers = arg_list[0]
-    n_dim = arg_list[1]
-    log_prob = arg_list[2]
-    log_prob_args = arg_list[3]
-    p_0 = arg_list[4]
-    n_steps = arg_list[5]
-    thin = arg_list[6]
-    backend = arg_list[7]
-    moves = arg_list[8]
-    sampler = emcee.EnsembleSampler(n_walkers, n_dim, log_prob, args=log_prob_args, backend=backend, moves=moves)
-    state = sampler.run_mcmc(p_0,n_steps, thin=thin)
-    return (sampler, state, backend)
+from traitlets import Bool
+import parallel_affine_utility as pau
 
 
 class ParallelEnsembleSampler:
@@ -35,6 +21,8 @@ class ParallelEnsembleSampler:
         self.thin = thin
         self.backend_fnames = backend_fnames
         self.moves_list = moves
+      
+
         # check that inputs are valid
         assert(type(self.n_ensembles)==int and self.n_ensembles>=1)
         assert(type(self.n_dim)==int and self.n_dim>=1)
@@ -44,15 +32,15 @@ class ParallelEnsembleSampler:
         assert(type(self.thin)==int and self.thin>=1)
         assert(type(self.backend_fnames)==list and len(self.backend_fnames)==self.n_ensembles)
         assert(type(self.moves_list)==list and len(self.moves_list)==self.n_ensembles)
-  
-          
+      
 
+          
         #assert(type(self.moves)==list)
 
         # Initialize the sampler
         # create a list ('ensemble') of backends and affine invariant ensemble samplers
         try:
-            self.backend_list = [emcee.backends.HDFBackend(self.backend_fnames[i], name=f"ensemble_{i}") for i in range(self.n_ensembles)] 
+            self.backend_list = [emcee.backends.HDFBackend(self.backend_fnames[i], name='init_empty') for i in range(self.n_ensembles)] 
             assert(all(type(item) is emcee.backends.HDFBackend for item in self.backend_list)==True)  # check that list was created correctly
             ### use backend.reset()?
             self.sampler_list = [emcee.EnsembleSampler(self.n_walkers, self.n_dim, self.log_prob, args=self.log_prob_args, backend=self.backend_list[i], moves=self.moves_list[i]) for i in range(self.n_ensembles)]
@@ -61,9 +49,16 @@ class ParallelEnsembleSampler:
             print("Error: could not create a list of affine invariant ensemble samplers", file=sys.stderr)
             sys.exit(1)
 
-     
+    
+    def update_backends(self, id):
+        """update the backend to include an additional section"""
+        self.id = id
+        assert(type(self.id)==str and len(self.id)>=1)
+        self.backend_list = [emcee.backends.HDFBackend(self.backend_fnames[i], name=f"{self.id}_ensemble_{i}") for i in range(self.n_ensembles)] 
+        assert(all(type(item) is emcee.backends.HDFBackend for item in self.backend_list)==True)  # check that list was created correctly
+
    
-    def run_sampler(self,p_0,n_steps,n_cores,thin):
+    def run_sampler(self,p_0,n_steps,n_cores,thin,id):
         """runs parallel ensemble samplers - without mixing"""
         # note: self.n_steps gets updated during self.run_sampler() call
         self.p_0 = p_0
@@ -77,11 +72,15 @@ class ParallelEnsembleSampler:
         assert(type(self.n_cores)==int and self.n_cores>=1)
         #assert(type(self.moves)==list)
         assert(type(self.thin)==int and self.thin>=1)
+        assert(type(id)==str and len(id)>=1)  # redundant?!
+
+        # update backends for new id
+        self.update_backends(id)
 
         # create a list of all the arguments for 'wrapper' function that makes and runs affine samplers in parallel
         arg_list = [(self.n_walkers, self.n_dim, self.log_prob, self.log_prob_args, self.p_0[i], self.n_steps, self.thin, self.backend_list[i], self.moves_list[i]) for i in range(self.n_ensembles)]
         pool = mp.Pool(self.n_cores)  # create a pool of workers w/ n cores
-        r = pool.map(wrapper, arg_list)  # use pool w/ map to run affine samplers in parallel
+        r = pool.map(pau.wrapper, arg_list)  # use pool w/ map to run affine samplers in parallel
         pool.close()   
 
         # process results into a list of samplers and sampler states
@@ -122,27 +121,31 @@ class ParallelEnsembleSampler:
         return p0_new  
 
 
-    def run_mixing_sampler(self,p_0,n_steps,n_cores,n_mixing_steps,n_final_steps,thin):
+    def run_mixing_sampler(self,p_0,n_steps_list,n_cores,n_mixing_stages, thin, id_list):
         """runs parallel ensemble samplers - with N mixing steps plus a final sampling run"""
         # check that inputs are valid        
         assert(isinstance(p_0,(list,np.ndarray)) and np.shape(p_0) == (self.n_ensembles, self.n_walkers, self.n_dim))
-        assert(type(n_steps)==int and n_steps>=1)
+        assert(type(n_steps_list)==list and all((type(item) is int) and (item > 0) for item in n_steps_list)==True)
         assert(type(n_cores)==int and n_cores>=1)
-        assert(type(n_mixing_steps)==int and n_mixing_steps>=0)
-        assert(type(n_final_steps)==int and n_final_steps>=n_steps)
+        assert(type(n_mixing_stages)==int and n_mixing_stages>=0)
+        
         #assert(type(moves)==list)
         assert(type(thin)==int and thin>=1)
-
+ 
+        assert(type(id_list)==list and len(id_list)==n_mixing_stages and (all(type(item) is str for item in id_list)==True))
+        self.id_list = id_list
 
         p_0_tmp = p_0  # start w/ initial parameter set 
-        for i in range(n_mixing_steps):
+        for i in range(n_mixing_stages):
+            tmp_id = id_list[i]
+            tmp_n_steps = n_steps_list[i]
             # start parallel affine invariant ensemble samplers
-            self.run_sampler(p_0_tmp,n_steps,n_cores,thin)
+            state_list = self.run_sampler(p_0_tmp,tmp_n_steps,n_cores,thin,tmp_id)
             p_0_tmp = self.mix_ensembles()  # update starting parameter set to new 'shuffled' parameter sets
-            self.reset_backend()
+            #self.reset_backend()
         # note: self.n_steps gets updated during self.run_sampler() call, so will update to n_final_steps
-        state_list = self.run_sampler(p_0_tmp,n_final_steps,n_cores,thin)     
-        return state_list
+        #state_list = self.run_sampler(p_0_tmp,n_final_steps,n_cores,thin)     
+        return state_list  # state list of final iteration
 
 
     def get_flat_samples(self):
@@ -152,16 +155,16 @@ class ParallelEnsembleSampler:
         return flat_samples
 
 
-    def print_backend_sampling_summary(self):
-        """print the shape of the samples loaded from the backend """
-        for i, reader in enumerate(self.backend_list):
-            samples = reader.get_chain(flat=True, thin=self.thin)
-            print(f'backend: {reader}')
-            print(f'fname: {self.backend_fnames[i]}')
-            print(f'  flat samples shape: {np.shape(samples)}')
+    # def print_backend_sampling_summary(self):
+    #     """print the shape of the samples loaded from the backend """
+    #     for i, reader in enumerate(self.backend_list):
+    #         samples = reader.get_chain(flat=True, thin=self.thin)
+    #         print(f'backend: {reader}')
+    #         print(f'fname: {self.backend_fnames[i]}')
+    #         print(f'  flat samples shape: {np.shape(samples)}')
     
 
-    def reset_backend(self):
+    def reset_backends(self):
         """resets backend - removing previous samples"""
         for b in self.backend_list:
             b.reset(self.n_walkers, self.n_dim)
@@ -169,8 +172,6 @@ class ParallelEnsembleSampler:
 
         
 
-
-    
 if __name__ == "__main__": 
     pass
    
