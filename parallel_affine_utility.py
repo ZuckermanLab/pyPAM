@@ -6,7 +6,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 
-def plot_single_ensemble_mixing_distributions(paie_sampler):
+def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affine_example_dist'):
     """creates seperate distribution figures for each ensemble - using data from each parameter and mixing stage """
     s = paie_sampler
     data_list = get_data_all_runs(s, flat=True)
@@ -22,7 +22,7 @@ def plot_single_ensemble_mixing_distributions(paie_sampler):
                 ax.legend()
             ax.set_title(f'p_{i} distribution')
         plt.tight_layout()
-        plt.savefig(f'parallel_affine_example_dist_{k}.png')
+        plt.savefig(f'{fname}_{k}.png')
         plt.close()
     return fig, axs
 
