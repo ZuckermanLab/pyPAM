@@ -31,7 +31,7 @@ if __name__ == "__main__":
     n_ensembles = 4
     n_walkers = 10  # n walkers per ensemble --> (n ensembles * n walkers) total walkers 
     n_mixing_stages = 10
-    n_steps_list = [1000 for _ in range(n_walkers)]  # number of steps for each mixing step
+    n_steps_list = [100 for _ in range(n_walkers)]  # number of steps for each mixing step
     #n_burn_in = 100
     n_total_samples = np.sum(np.array(n_steps_list)*n_walkers*n_ensembles*n_mixing_stages)
     
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     ] for i in range(n_ensembles)]
 
     # set run ids
-    run_id_list = [ f'run_{i}' for i in range(n_mixing_stages)]
+    run_id_list = [ f'stage_{i}' for i in range(n_mixing_stages)]
 
     # run parallel sampler (w/ mixing) and time it
     t0 = time.time()
@@ -60,7 +60,17 @@ if __name__ == "__main__":
     states = sampler.run_mixing_sampler(p_0, n_steps_list, n_cores, n_mixing_stages,thin,run_id_list)
     t = time.time()-t0
     print(f"wall clock time: {n_total_samples} total samples in {t} s -->  {n_total_samples/t} samples/s")
-    pau.plot_single_ensemble_mixing_distributions(sampler)  # quick plot distributions for each ensemble
-    D = pau.get_data_all_runs(sampler, flat=True)
-    print(f'shape of flattened data (n ensembles, n mixing stages, n_steps/thin, n_dim): {np.shape(D)}')
+
+    # pau.plot_single_ensemble_mixing_distributions(sampler,'PAIES_example_mixing',xlim=[[-1,1] for i in range(n_dim)])  # quick plot distributions for each ensemble
+    # D = pau.get_data_all_runs(sampler, flat=True)
+    # print(f'shape of flattened data (n ensembles, n mixing stages, n_steps/thin, n_dim): {np.shape(D)}')
+
+
+    # open existing .h5 data and analyze it
+    datafile_ensemble1 = backend_fnames[0]
+    data_dict_ensemble1 = pau.get_data_dict_from_backend(datafile_ensemble1,flat=True)
+    print(data_dict_ensemble1.keys())  # dictionary key = different mixing 'stages'
+    for key in data_dict_ensemble1.keys():
+        print(f'{key} data shape (n walkers*n_steps,n_dim): {np.shape(data_dict_ensemble1[key])}')  # flattened array of data (since flat = True above)
+    
 

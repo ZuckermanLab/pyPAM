@@ -6,8 +6,11 @@ import h5py
 import matplotlib.pyplot as plt
 
 
-def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affine_example_dist'):
+def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affine_example_dist', n_bins=100, xlim=[[-1,1]]):
     """creates seperate distribution figures for each ensemble - using data from each parameter and mixing stage """
+    assert(type(fname)==str and len(fname)>=1)
+    assert(type(n_bins)==int and n_bins>1)
+    assert(type(xlim)==list and xlim[0][1]>xlim[0][0])
     s = paie_sampler
     data_list = get_data_all_runs(s, flat=True)
     n_dim = s.n_dim
@@ -15,16 +18,30 @@ def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affi
         # plot 1d marginal posteriors
         fig, axs = plt.subplots(n_dim, figsize=(15,12))
         plt.suptitle('1D marginal posterior distributions - ensemble {k}')
-        for i, ax in enumerate(axs.flatten()):  # for each subplot figure (parameter)
+        if n_dim >=2:
+            for i, ax in enumerate(axs.flatten()):  # for each subplot figure (parameter)
+                for j, D_j in enumerate(ensemble_data):  # for each mixing stage
+                    D_tmp = np.transpose(D_j)
+                    ax.hist(D_tmp[i], n_bins, histtype="step", density=True, label=f'idx {j}', range=(xlim[i][0], xlim[i][1]))   # plot parameter histogram
+                    ax.legend()
+                ax.set_title(f'p_{i} distribution')
+                ax.set_xlim(xlim[0][0], xlim[0][1])
+
+        else:
+            ax = axs
+            i=0
             for j, D_j in enumerate(ensemble_data):  # for each mixing stage
                 D_tmp = np.transpose(D_j)
-                ax.hist(D_tmp[i], 100, histtype="step", density=True, label=f'idx {j}')   # plot parameter histogram
+                ax.hist(D_tmp[i], n_bins, histtype="step", density=True, label=f'idx {j}',range=(xlim[i][0], xlim[i][1]))   # plot parameter histogram
                 ax.legend()
-            ax.set_title(f'p_{i} distribution')
+                ax.set_title(f'p_{j} distribution')
+            ax.set_xlim(xlim[i][0], xlim[i][1])
+
         plt.tight_layout()
         plt.savefig(f'{fname}_{k}.png')
         plt.close()
     return fig, axs
+
 
 
 def get_data_all_runs(paie_sampler, flat=False):
@@ -49,6 +66,26 @@ def get_data_all_runs(paie_sampler, flat=False):
         data_list.append(ensemble_list)
 
     return data_list
+
+
+def get_data_dict_from_backend(fname, flat=False):
+    assert(type(fname)==str and len(fname)>=1)
+    f = h5py.File(fname,'r')
+    ensemble_data_dict = {}
+    for key in f.keys():
+        if key != 'init_empty':
+            c_tmp = f[key]['chain']
+            print(np.shape(c_tmp))
+            if flat ==True:
+                c = np.reshape(c_tmp, (c_tmp.shape[0]*c_tmp.shape[1],c_tmp.shape[2])) 
+            else:
+                c = c_tmp
+            ensemble_data_dict[key] = c
+        else:
+            pass
+    return ensemble_data_dict
+
+
 
 
 def print_backend_info(fname):
