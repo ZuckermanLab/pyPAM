@@ -5,6 +5,8 @@ A parallelizable extension of the affine invariant ensemble sampler (EMCEE pytho
 
 ##### Updates
 
+7/18/2022 - added function to load .h5 data into a dictionary for analysis
+
 7/13/2022 - now data is stored for all mixing steps, added some utility functions, and updated example script.
 
 7/6/2022 - added 'backends' and 'moves' option, with example usage
