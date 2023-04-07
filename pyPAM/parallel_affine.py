@@ -171,7 +171,7 @@ class ParallelEnsembleSampler:
         # check that last samples are correct. - use alternative way to get last samples using emcee sampler 
         last_samples_emcee = np.array([i.get_last_sample()[0] for i in self.sampler_list])
         assert(np.shape(last_samples)==np.shape(last_samples_emcee))
-        assert(np.all_close(last_samples,last_samples_emcee))  # can use array_equal for slower but more accurate method
+        assert(np.testing.assert_allclose(last_samples,last_samples_emcee))  # can use array_equal for slower but more accurate method
         return last_samples
 
 
