@@ -1,12 +1,12 @@
 # pyPAM
 A parallel extension of the affine invariant ensemble sampler (emcee) w/ optional ensemble mixing
 
-Getting started:
 
+Clone repository:
 ```
 git clone https://github.com/ZuckermanLab/pyPAM
 ```
-
+Usage:
 ```
 import parallel_affine as pa
 sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin, backend_fnames, moves)
