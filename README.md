@@ -15,4 +15,6 @@ pa.plot_single_ensemble_mixing_distributions(sampler)  # quick plot distribution
 D = pau.get_data_all_runs(sampler, flat=True)  # get data --> shape = (n ensembles, n mixing stages, n_steps/thin, n_dim)
 ```
 
+see [Docs](https://zuckermanlab.github.io/pyPAM/)
+
 August George, Zuxkerman Lab, OHSU, 2023
