@@ -4,13 +4,14 @@ pyPAM is a Parallelized Affine invariant ensemble sampler with an optional Mixin
 This method parallelizes multiple ensembles for better performance, and also includes an optional phase of shuffling walkers between ensembles. 
 
 
-example usage:
+### Getting started
+
 Clone repository:
 ```bash
 git clone https://github.com/ZuckermanLab/pyPAM
 
 ```
-Usage:
+Example usage:
 ```python
 import parallel_affine as pa
 sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin, backend_fnames, moves)

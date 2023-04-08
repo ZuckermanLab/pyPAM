@@ -46,15 +46,16 @@ pyPAM    </h1>
 
 <p>This method parallelizes multiple ensembles for better performance, and also includes an optional phase of shuffling walkers between ensembles. </p>
 
-<p>example usage:
-Clone repository:</p>
+<h3 id="getting-started">Getting started</h3>
+
+<p>Clone repository:</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ZuckermanLab/pyPAM
 </code></pre>
 </div>
 
-<p>Usage:</p>
+<p>Example usage:</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="kn">import</span> <span class="nn">parallel_affine</span> <span class="k">as</span> <span class="nn">pa</span>
@@ -76,23 +77,24 @@ Clone repository:</p>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="sd">This method parallelizes multiple ensembles for better performance, and also includes an optional phase of shuffling walkers between ensembles. </span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="sd">example usage:</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="sd">Clone repository:</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">```bash</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">git clone https://github.com/ZuckermanLab/pyPAM</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="sd">```</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">Usage:</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">```python</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">import parallel_affine as pa</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin, backend_fnames, moves)</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">states = sampler.run_mixing_sampler(p_0, n_steps_list, n_cores, n_mixing_stages,thin,run_id_list)</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">pa.plot_single_ensemble_mixing_distributions(sampler)  # quick plot distributions for each ensemble</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">D = pau.get_data_all_runs(sampler, flat=True)  # get data --&gt; shape = (n ensembles, n mixing stages, n_steps/thin, n_dim)</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">```</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="sd">### Getting started</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">Clone repository:</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">```bash</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="sd">git clone https://github.com/ZuckermanLab/pyPAM</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">```</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">Example usage:</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">```python</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">import parallel_affine as pa</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin, backend_fnames, moves)</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">states = sampler.run_mixing_sampler(p_0, n_steps_list, n_cores, n_mixing_stages,thin,run_id_list)</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">pa.plot_single_ensemble_mixing_distributions(sampler)  # quick plot distributions for each ensemble</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">D = pau.get_data_all_runs(sampler, flat=True)  # get data --&gt; shape = (n ensembles, n mixing stages, n_steps/thin, n_dim)</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">```</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">&#39;&#39;&#39;</span>
 </span></pre></div>
 
 
