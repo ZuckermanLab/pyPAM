@@ -1,7 +1,7 @@
 # pyPAM
 [![Test](https://github.com/ZuckermanLab/pyPAM/actions/workflows/python-app.yml/badge.svg)](https://github.com/ZuckermanLab/pyPAM/actions/workflows/python-app.yml) [![Docs](https://github.com/ZuckermanLab/pyPAM/actions/workflows/build-docs.yml/badge.svg)](https://github.com/ZuckermanLab/pyPAM/actions/workflows/build-docs.yml)
 
-A parallel extension of the affine invariant ensemble sampler (emcee) w/ optional ensemble mixing
+A parallel extension of the affine invariant ensemble sampler (emcee)[https://emcee.readthedocs.io/en/stable/] w/ optional ensemble mixing
 
 ### Getting started
 
