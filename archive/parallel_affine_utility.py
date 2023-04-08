@@ -26,7 +26,6 @@ def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affi
                     ax.legend()
                 ax.set_title(f'p_{i} distribution')
                 ax.set_xlim(xlim[0][0], xlim[0][1])
-
         else:
             ax = axs
             i=0
@@ -36,7 +35,6 @@ def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affi
                 ax.legend()
                 ax.set_title(f'p_{j} distribution')
             ax.set_xlim(xlim[i][0], xlim[i][1])
-
         plt.tight_layout()
         plt.savefig(f'{fname}_{k}.png')
         plt.close()
@@ -64,7 +62,6 @@ def get_data_all_runs(paie_sampler, flat=False):
             else:
                 pass
         data_list.append(ensemble_list)
-
     return data_list
 
 
@@ -84,8 +81,6 @@ def get_data_dict_from_backend(fname, flat=False):
         else:
             pass
     return ensemble_data_dict
-
-
 
 
 def print_backend_info(fname):

@@ -3,9 +3,9 @@ import parallel_affine_utility as pau
 import numpy as np
 import time
 import emcee 
-import multiprocessing as mp
-import matplotlib.pyplot as plt
-import h5py
+#import multiprocessing as mp
+#import matplotlib.pyplot as plt
+#import h5py
 
 
 # using example from: https://emcee.readthedocs.io/en/stable/tutorials/quickstart/#quickstart

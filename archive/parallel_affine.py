@@ -21,7 +21,6 @@ class ParallelEnsembleSampler:
         self.thin = thin
         self.backend_fnames = backend_fnames
         self.moves_list = moves
-      
 
         # check that inputs are valid
         assert(type(self.n_ensembles)==int and self.n_ensembles>=1)
@@ -32,9 +31,7 @@ class ParallelEnsembleSampler:
         assert(type(self.thin)==int and self.thin>=1)
         assert(type(self.backend_fnames)==list and len(self.backend_fnames)==self.n_ensembles)
         assert(type(self.moves_list)==list and len(self.moves_list)==self.n_ensembles)
-      
-
-          
+                
         #assert(type(self.moves)==list)
 
         # Initialize the sampler
@@ -170,7 +167,6 @@ class ParallelEnsembleSampler:
             b.reset(self.n_walkers, self.n_dim)
             print('warning: resetting backend (removing old samples from chain)')
 
-        
 
 if __name__ == "__main__": 
     pass

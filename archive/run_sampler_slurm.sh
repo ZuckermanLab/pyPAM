@@ -12,4 +12,4 @@
 
 source /home/path/to/python/environment/bin/activate
 
-srun python /home/path/to/parallel_affine/parallel_affine_example.py 
+srun python /home/path/to/parallel_affine/parallel_affine_example.py  
