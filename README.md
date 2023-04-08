@@ -18,4 +18,4 @@ D = pau.get_data_all_runs(sampler, flat=True)  # get data --> shape = (n ensembl
 
 see [Docs](https://zuckermanlab.github.io/pyPAM/) for more info.
 
-August George, Zuxkerman Lab, OHSU, 2023
+August George, Zuckerman Lab, OHSU, 2023
