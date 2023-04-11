@@ -18,7 +18,7 @@ def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affi
     Returns:
         tuple: The figure and axes objects.
     """
-    assert(type(fname)==str and len(fname)>=1)
+    assert(type(fname)==str and len(fname)>=0)
     assert(type(n_bins)==int and n_bins>1)
     assert(type(xlim)==list and xlim[0][1]>xlim[0][0])
     s = paie_sampler
@@ -27,12 +27,12 @@ def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affi
     for k, ensemble_data in enumerate(data_list):
         # plot 1d marginal posteriors
         fig, axs = plt.subplots(n_dim, figsize=(15,12))
-        plt.suptitle('1D marginal posterior distributions - ensemble {k}')
+        plt.suptitle(f'1D marginal posterior distributions - ensemble {k}')
         if n_dim >=2:
             for i, ax in enumerate(axs.flatten()):  # for each subplot figure (parameter)
                 for j, D_j in enumerate(ensemble_data):  # for each mixing stage
                     D_tmp = np.transpose(D_j)
-                    ax.hist(D_tmp[i], n_bins, histtype="step", density=True, label=f'idx {j}', range=(xlim[i][0], xlim[i][1]))   # plot parameter histogram
+                    ax.hist(D_tmp[i], n_bins, histtype="step", density=True, label=f'mixing stage {j}', range=(xlim[i][0], xlim[i][1]))   # plot parameter histogram
                     ax.legend()
                 ax.set_title(f'p_{i} distribution')
                 ax.set_xlim(xlim[0][0], xlim[0][1])
@@ -46,7 +46,8 @@ def plot_single_ensemble_mixing_distributions(paie_sampler, fname='parallel_affi
                 ax.set_title(f'p_{j} distribution')
             ax.set_xlim(xlim[i][0], xlim[i][1])
         plt.tight_layout()
-        plt.savefig(f'{fname}_{k}.png')
+        if fname:
+            plt.savefig(f'{fname}_{k}.png')
         plt.close()
     return fig, axs
 
@@ -130,9 +131,8 @@ def wrapper(arg_list):
                 arg_list[3] (tuple): The arguments to pass to the log probability function.
                 arg_list[4] (ndarray): The initial positions of the walkers in the parameter space.
                 arg_list[5] (int): The number of MCMC steps to take.
-                arg_list[6] (int): The thinning factor for the MCMC chain.
-                arg_list[7] (Backend): The backend object to store the MCMC chain data.
-                arg_list[8] (list): The list of move objects to use for the sampler.
+                arg_list[6] (Backend): The backend object to store the MCMC chain data.
+                arg_list[7] (list): The list of move objects to use for the sampler.
                 
         Returns:
             tuple: A tuple containing the EnsembleSampler object, the final state of the sampler, and the backend object.
@@ -143,11 +143,10 @@ def wrapper(arg_list):
     log_prob_args = arg_list[3]
     p_0 = arg_list[4]
     n_steps = arg_list[5]
-    thin = arg_list[6]
-    backend = arg_list[7]
-    moves = arg_list[8]
+    backend = arg_list[6]
+    moves = arg_list[7]
     sampler = emcee.EnsembleSampler(n_walkers, n_dim, log_prob, args=log_prob_args, backend=backend, moves=moves)
-    state = sampler.run_mcmc(p_0,n_steps, thin=thin)
+    state = sampler.run_mcmc(p_0,n_steps)
     return (sampler, state, backend)
 
 

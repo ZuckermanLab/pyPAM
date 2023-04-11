@@ -21,7 +21,6 @@ class TestParallelEnsembleSampler(unittest.TestCase):
         n_ensembles = 2
         n_walkers = 10
         n_dim = 3
-        thin = 1
         cov = 0.1 * np.eye(n_dim) 
         backend_fnames = ['./tests/test_backend_0.h5', './tests/test_backend_1.h5']
         moves = [emcee.moves.GaussianMove(cov) for _ in range(n_ensembles)]
@@ -32,10 +31,10 @@ class TestParallelEnsembleSampler(unittest.TestCase):
         id = 'test_section'
 
         # Initialize sampler object
-        sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, [], thin, backend_fnames, moves)
+        sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, log_prob, [],  backend_fnames, moves)
 
         # Run sampler
-        state_list = sampler.run_sampler(p_0, n_steps, n_cores, thin, id)
+        state_list = sampler.run_sampler(p_0, n_steps, n_cores,  id)
 
         # Test output types and shapes
         self.assertIsInstance(state_list, list)
@@ -46,17 +45,17 @@ class TestParallelEnsembleSampler(unittest.TestCase):
         # Test that initial positions are updated correctly
         new_p_0 = np.zeros((n_ensembles, n_walkers, n_dim))
         new_p_0 += np.random.normal(scale=1e-4, size=new_p_0.shape)
-        state_list = sampler.run_sampler(new_p_0, n_steps, n_cores, thin, id)
+        state_list = sampler.run_sampler(new_p_0, n_steps, n_cores, id)
         assert_array_equal(sampler.p_0, new_p_0)
 
         # Test that the sampler raises an error if the initial state has a large condition number
         p_0 = np.zeros((n_ensembles, n_walkers, n_dim))
         with self.assertRaises(ValueError):
-            state_list = sampler.run_sampler(p_0, n_steps, n_cores, thin, id)
+            state_list = sampler.run_sampler(p_0, n_steps, n_cores, id)
 
         # Test that the sampler raises an error if the input arguments are invalid
         with self.assertRaises(AssertionError):
-            state_list = sampler.run_sampler(p_0, -1, n_cores, thin, id)
+            state_list = sampler.run_sampler(p_0, -1, n_cores, id)
 
         # Clean up test files
         for fname in backend_fnames:

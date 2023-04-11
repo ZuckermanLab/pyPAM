@@ -19,7 +19,6 @@ class ParallelEnsembleSampler:
         n_dim (int): The number of dimensions in the problem space.
         log_prob (function): A function that computes the log probability of a given point in the problem space.
         log_prob_args (list): A list of additional arguments to pass to log_prob.
-        thin (int): The thinning factor to use for saving samples. Only every `thin`th sample will be saved.
         backend_fnames (list): A list of file names for the backends to use. There should be one filename for each ensemble.
         moves (list): A list of moves to use for each ensemble.
 
@@ -29,7 +28,6 @@ class ParallelEnsembleSampler:
         n_dim (int): The number of dimensions in the problem space.
         log_prob (function): A function that computes the log probability of a given point in the problem space.
         log_prob_args (list): A list of additional arguments to pass to log_prob.
-        thin (int): The thinning factor to use for saving samples.
         backend_fnames (list): A list of file names for the backends to use.
         moves_list (list): A list of moves to use for each ensemble.
         backend_list (list): A list of backends for each ensemble.
@@ -40,14 +38,13 @@ class ParallelEnsembleSampler:
 
     """
 
-    def __init__(self, n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, thin, backend_fnames, moves):
+    def __init__(self, n_ensembles, n_walkers, n_dim, log_prob, log_prob_args, backend_fnames, moves):
         """initializes sampler class"""
         self.n_ensembles = n_ensembles
         self.n_walkers = n_walkers
         self.n_dim = n_dim
         self.log_prob = log_prob
         self.log_prob_args = log_prob_args
-        self.thin = thin
         self.backend_fnames = backend_fnames
         self.moves_list = moves
       
@@ -57,7 +54,6 @@ class ParallelEnsembleSampler:
         assert(type(self.n_walkers)==int and self.n_walkers>=2*n_dim and self.n_walkers%2==0)
         assert(isinstance(self.log_prob, types.FunctionType)==True)
         assert(type(self.log_prob_args)==list)
-        assert(type(self.thin)==int and self.thin>=1)
         assert(type(self.backend_fnames)==list and len(self.backend_fnames)==self.n_ensembles)
         assert(type(self.moves_list)==list and len(self.moves_list)==self.n_ensembles)
 
@@ -90,7 +86,7 @@ class ParallelEnsembleSampler:
         assert(all(type(item) is emcee.backends.HDFBackend for item in self.backend_list)==True)  # check that list was created correctly
 
    
-    def run_sampler(self, p_0, n_steps, n_cores, thin, id):
+    def run_sampler(self, p_0, n_steps, n_cores, id):
         """Run the parallel ensemble samplers.
 
         This method runs the parallel affine invariant ensemble samplers for a specified number of steps, with a given initial state and number of cores. It updates the backends for each ensemble to include a new section identified by an ID string, and returns the final state of the samplers.
@@ -99,7 +95,6 @@ class ParallelEnsembleSampler:
             p_0 (ndarray): The initial state for each walker in each ensemble, as a 3D array with shape (n_ensembles, n_walkers, n_dim).
             n_steps (int): The number of steps to run each sampler for.
             n_cores (int): The number of CPU cores to use for parallelization.
-            thin (int): The thinning factor to use for saving samples.
             id (str): The ID string to use for the new backend section.
 
         Returns:
@@ -112,23 +107,20 @@ class ParallelEnsembleSampler:
         self.p_0 = p_0
         self.n_steps = n_steps
         self.n_cores = n_cores
-        self.thin = thin
 
         # check that inputs are valid        
         assert(isinstance(self.p_0,(list,np.ndarray)) and np.shape(self.p_0) == (self.n_ensembles, self.n_walkers, self.n_dim))
         assert(type(self.n_steps)==int and self.n_steps>=1)
         assert(type(self.n_cores)==int and self.n_cores>=1)
-        assert(type(self.thin)==int and self.thin>=1)
         assert(type(id)==str and len(id)>=1)  # redundant?!
 
         # update backends for new id
         self.update_backends(id)
 
         # create a list of all the arguments for 'wrapper' function that makes and runs affine samplers in parallel
-        arg_list = [(self.n_walkers, self.n_dim, self.log_prob, self.log_prob_args, self.p_0[i], self.n_steps, self.thin, self.backend_list[i], self.moves_list[i]) for i in range(self.n_ensembles)]
-        pool = mp.Pool(self.n_cores)  # create a pool of workers w/ n cores
-        r = pool.map(pau.wrapper, arg_list)  # use pool w/ map to run affine samplers in parallel
-        pool.close()   
+        arg_list = [(self.n_walkers, self.n_dim, self.log_prob, self.log_prob_args, self.p_0[i], self.n_steps,  self.backend_list[i], self.moves_list[i]) for i in range(self.n_ensembles)]
+        with mp.Pool(self.n_cores) as pool:  # create a pool of workers w/ n cores
+            r = pool.map(pau.wrapper, arg_list)  # use pool w/ map to run affine samplers in parallel
 
         # process results into a list of samplers and sampler states
         new_sampler_list = [ i[0] for i in r]
@@ -151,7 +143,9 @@ class ParallelEnsembleSampler:
             AssertionError: If the shape of the returned samples is not as expected.
         """
         samples = [i.get_chain() for i in self.sampler_list]
-        assert(np.shape(samples)==(self.n_ensembles,int(self.n_steps/self.thin),self.n_walkers,self.n_dim))
+        actual_shape = np.shape(samples)
+        expected_shape = (self.n_ensembles, int(self.n_steps), self.n_walkers, self.n_dim)
+        assert(np.shape(samples)==(self.n_ensembles,int(self.n_steps),self.n_walkers,self.n_dim))
         return np.array(samples)
 
 
@@ -171,7 +165,7 @@ class ParallelEnsembleSampler:
         # check that last samples are correct. - use alternative way to get last samples using emcee sampler 
         last_samples_emcee = np.array([i.get_last_sample()[0] for i in self.sampler_list])
         assert(np.shape(last_samples)==np.shape(last_samples_emcee))
-        assert(np.testing.assert_allclose(last_samples,last_samples_emcee))  # can use array_equal for slower but more accurate method
+        np.testing.assert_allclose(last_samples,last_samples_emcee)  # can use array_equal for slower but more accurate method
         return last_samples
 
 
@@ -193,17 +187,16 @@ class ParallelEnsembleSampler:
         return p0_new  
 
 
-    def run_mixing_sampler(self, p_0, n_steps_list, n_cores, n_mixing_stages, thin, id_list):
+    def run_mixing_sampler(self, p_0, n_steps_list, n_cores, n_mixing_stages, id_list):
         """Run the parallel ensemble samplers with N mixing steps plus a final sampling run.
 
-        This method runs the parallel affine invariant ensemble samplers with a specified number of mixing steps, followed by a final sampling run. It takes an initial state, a list of numbers of steps to run at each mixing stage, the number of CPU cores to use for parallelization, the number of mixing stages to run, a thinning factor, and a list of ID strings for the backend sections for each mixing stage.
+        This method runs the parallel affine invariant ensemble samplers with a specified number of mixing steps, followed by a final sampling run. It takes an initial state, a list of numbers of steps to run at each mixing stage, the number of CPU cores to use for parallelization, the number of mixing stages to run, and a list of ID strings for the backend sections for each mixing stage.
 
         Args:
             p_0 (ndarray): The initial state for each walker in each ensemble, as a 3D array with shape (n_ensembles, n_walkers, n_dim).
             n_steps_list (list): A list of integers specifying the number of steps to run each sampler for at each mixing stage.
             n_cores (int): The number of CPU cores to use for parallelization.
             n_mixing_stages (int): The number of mixing stages to run.
-            thin (int): The thinning factor to use for saving samples.
             id_list (list): A list of ID strings for the backend sections for each mixing stage.
 
         Returns:
@@ -217,7 +210,6 @@ class ParallelEnsembleSampler:
         assert(type(n_steps_list)==list and all((type(item) is int) and (item > 0) for item in n_steps_list)==True)
         assert(type(n_cores)==int and n_cores>=1)
         assert(type(n_mixing_stages)==int and n_mixing_stages>=0)   
-        assert(type(thin)==int and thin>=1)
         assert(type(id_list)==list and len(id_list)==n_mixing_stages and (all(type(item) is str for item in id_list)==True))
         self.id_list = id_list
 
@@ -226,7 +218,7 @@ class ParallelEnsembleSampler:
             tmp_id = id_list[i]
             tmp_n_steps = n_steps_list[i]
             # start parallel affine invariant ensemble samplers
-            state_list = self.run_sampler(p_0_tmp,tmp_n_steps,n_cores,thin,tmp_id)
+            state_list = self.run_sampler(p_0_tmp,tmp_n_steps,n_cores,tmp_id)
             p_0_tmp = self.mix_ensembles()  # update starting parameter set to new 'shuffled' parameter sets
         # note: self.n_steps gets updated during self.run_sampler() call, so will update to n_final_steps    
         return state_list  # state list of final iteration
@@ -242,7 +234,7 @@ class ParallelEnsembleSampler:
 
         """
         chains = self.get_chains()
-        flat_samples = np.reshape(chains, (self.n_ensembles*int(self.n_steps/self.thin)*self.n_walkers, self.n_dim))
+        flat_samples = np.reshape(chains, (self.n_ensembles*int(self.n_steps)*self.n_walkers, self.n_dim))
         return flat_samples
 
 
