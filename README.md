@@ -7,7 +7,7 @@ A parallel extension of the affine invariant ensemble sampler [emcee](https://em
 
 Clone repository:
 ```
-git clone https://github.com/ZuckermanLab/pyPAM
+git clone https://github.com/ZuckermanLab/pyPAM.git
 ```
 Example usage:
 ```
