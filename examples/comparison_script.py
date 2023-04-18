@@ -1,7 +1,4 @@
 import numpy as np
-import scipy as sp
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import emcee 
 import sys 
 import os
@@ -27,6 +24,7 @@ if __name__ == "__main__":
         n_cpus_list.append(n_cpus_i)
 
         ### parallel affine invariant ensemble sampler with mixing stages
+
         # sampling parameters 
         total_n_walkers = int(6e3)
         np.random.seed(0)
@@ -63,6 +61,7 @@ if __name__ == "__main__":
         sampler = pa.ParallelEnsembleSampler(n_ensembles, n_walkers, n_dim, toy_model.log_prob, log_prob_args,  backend_fnames, moves)
         states = sampler.run_mixing_sampler(p_0, n_steps_list, n_cores, n_mixing_stages, run_id_list)
         t = time.time()-t0 
+
         # Clean up test files (removes h5 files)
         for fname in backend_fnames:
             if os.path.exists(fname):
@@ -74,23 +73,26 @@ if __name__ == "__main__":
         n_steps_emcee = np.sum(np.array(n_steps_list))
         total_samples_emcee = n_walkers_emcee*n_steps_emcee
         backend_emcee = emcee.backends.HDFBackend('example_data_emcee.h5', name='init_empty')
+
         # initial start points w/ shape = (n_ensembles, n_walkers, n_dim)
         x0_range_emcee = np.random.uniform(-2, 2, size=(n_walkers_emcee, 1))
         x1_range_emcee = np.random.uniform(-1, 3, size=(n_walkers_emcee, 1))
         p_0_emcee = np.concatenate((x0_range_emcee, x1_range_emcee), axis=1)
 
-
+        # run and time sampler
         t0 = time.time()
         with mp.Pool(n_cores) as pool:
             sampler2 = emcee.EnsembleSampler(n_walkers_emcee, n_dim, toy_model.log_prob, args=log_prob_args, backend=backend_emcee, moves=moves[0])
             state2 = sampler2.run_mcmc(p_0_emcee,n_steps_emcee)
         t = time.time()-t0 
 
-
+        # clean up extra files
         if os.path.exists('example_data_emcee.h5'):
             os.remove('example_data_emcee.h5')
 
+        # output results
         t_emcee.append(t)
         print(f'{n_cpus_i} cpus: pyPAM={t_pyPAM[-1]}s, emcee={t_emcee[-1]}s, ratio={t_pyPAM[-1]/t_emcee[-1]}s')
-
+        np.savetxt(f"t_pyPAM_{n_cpus_i}.txt", t_pyPAM)
+        np.savetxt(f"t_emcee_{n_cpus_i}.txt", t_emcee)
    
