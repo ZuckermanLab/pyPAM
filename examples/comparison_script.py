@@ -20,7 +20,7 @@ if __name__ == "__main__":
     n_cpus_list = []
 
     # use 2-20 number of CPUs 
-    for n_cpus_i in range(2,21):
+    for n_cpus_i in range(2,3):
         n_cpus_list.append(n_cpus_i)
 
         ### parallel affine invariant ensemble sampler with mixing stages
